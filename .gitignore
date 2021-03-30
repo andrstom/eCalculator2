@@ -1,0 +1,7 @@
+app/config/local.neon
+app/config/local_1.neon
+vendor
+nbproject
+log
+temp
+/www/db_backup
