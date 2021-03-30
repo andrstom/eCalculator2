@@ -155,7 +155,7 @@ class HomepagePresenter extends BasePresenter
         if (!$user->isLoggedIn()) {
             
             // load all assays
-            $userassay = $this->dbHandler->getAssays()->fetchPairs('id', 'assay_name');
+            $userassay = $this->dbHandler->getAssays()->where('active', 'ANO')->fetchPairs('id', 'assay_name');
             
             // select assay
             $form->addSelect('assay', '* Vyberte metodu / Select assay:', $userassay)
