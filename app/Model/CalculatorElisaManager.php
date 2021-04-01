@@ -1,5 +1,5 @@
-<?php
-declare(strict_types=1);
+<?php declare(strict_types=1);
+
 namespace App\Model;
 
 use Nette;
@@ -32,7 +32,6 @@ class CalculatorElisaManager
         $this->database = $database;
     }
     
-    
     public function getReader($value)
     {
         /** load reader (if exist) or set manual as default */
@@ -57,29 +56,19 @@ class CalculatorElisaManager
         $fileFormat = pathinfo($file, PATHINFO_EXTENSION);
         
         if ($reader != 'manual') {
-            
             if ($reader->reader_output == "XLS") {
-            
                 if (!in_array($fileFormat, $allowedFormats['XLS'])) {
-                    
                     return false;
-                    
                 } else {
-                    
                     return true;
                 }
             }
             
             if($reader->reader_output == "TXT") {
-            
                 if (!in_array($fileFormat, $allowedFormats['TXT'])) {
-                    
                     return false;
-                    
                 } else {
-                    
                     return true;
-                    
                 }
             }
         }
@@ -89,7 +78,6 @@ class CalculatorElisaManager
      * @param form values
      */
     public function updateAssayParameters($values, $user) {
-        
         $assay = $this->database->table('calc_users_assays')
                 ->where("users_id = ?", $user->id)
                 ->where("assays_id = ?", $values['assay'])
@@ -144,25 +132,17 @@ class CalculatorElisaManager
      * @return array
      */
     public function getParam($value) {
-    
         $this->param = $value;
-        
         if(!is_array($this->param)) {
-            
             $this->param = str_replace(",", ".", $this->param);
-            
         } else {
-            
             foreach ($this->param as $k => $v) {
-
                 $this->param[$k] = str_replace(",", ".", $v);
             }
 
             $reader = $this->getReader($this->param['reader']);
             if ($reader != "manual") {
-
                 if ($reader->reader_output == "XLS") {
-
                     /**
                     *  Read Excel workbook
                     * @param string file tmp_name
@@ -176,7 +156,6 @@ class CalculatorElisaManager
                 }
 
                 if ($reader->reader_output == "TXT") {
-
                     /**
                      * TextManager load data from text file
                      * 
@@ -190,17 +169,12 @@ class CalculatorElisaManager
 
                     $this->param['Abs'] = $textReport;
                 }
-
             } else {
-
                 foreach ($this->param['Abs'] as $k1 => $v1) {
-
                     $this->param['Abs'][$k1] = (float) $v1;
-
                 }
             }
         }
-
         return $this->param;
     }
     
@@ -213,15 +187,10 @@ class CalculatorElisaManager
         $param = $this->getParam($value);
         
         if ($param['dilution'] == "101") {
-            
             $kf = $param['kf_serum'];
-             
         } elseif ($param['dilution'] == "2") {
-            
             $kf = $param['kf_csf'];
-            
         } else {
-            
             $kf = $param['kf_synovia'];
         }
         
@@ -229,9 +198,7 @@ class CalculatorElisaManager
         $cutoff = ((($param['Abs'][13] - $Blank) + ($param['Abs'][25] - $Blank)) / 2) * $kf;
         
         foreach ($param['Abs'] as $k => $v) {
-        
             $sample = $v - $Blank;
-            
             if (!empty($v)) {
                 if ($sample <= 0) {
                     $result[$k] = "< Blank";
@@ -241,9 +208,7 @@ class CalculatorElisaManager
             } else {
                 $result[$k] = "";
             }
-            
         }
-        
         return $result;
     }
     
@@ -254,7 +219,6 @@ class CalculatorElisaManager
     public function calcAU($value) {
         
         $param = $this->getParam($value);
-        
         $Blank = $param['Abs'][1];
         $BMax = (((($param['Abs'][13] - $Blank) / $param['std_bmax']) + (($param['Abs'][25] - $Blank) / $param['std_bmax'])) / 2);
         
@@ -268,34 +232,22 @@ class CalculatorElisaManager
 
             // the calculation is made according to the condition
             if ($sample <= 0) { // division by zero
-            
                 $result[$k] = "< Blank";
             
             } elseif ($sample > $BMax) {
-            
-                //$result[$k] = ($param['dilution'] == "2" ? "> 16" : "> " . number_format($param['c_max'], 0, '.', ''));
                 $result[$k] = "> " . number_format((($param['c_max'] / 101) * $param['dilution']), 0, '.', '');
-            
             } elseif ($condition1 < $param['c_min']) {
-            
                 $result[$k] = ((($sample / $BMax) * (log(($param['c_min'] - $param['a1']) / (-$param['a2']))) * (-$param['c']) / $param['c_min']) / 101) * $param['dilution'];
                 $result[$k] = number_format($result[$k] , 2, '.', '');
-            
             } else {
-            
                 $result[$k] = ((log(($sample / $BMax - $param['a1']) / (-$param['a2'])) * (-$param['c'])) / 101) * $param['dilution'];
                 $result[$k] = number_format($result[$k] , 2, '.', '');
-            
             }
-        
+
             if ($result[$k] == "nan") {
-            
                 $result[$k] = "> " . number_format((($param['c_max'] / 101) * $param['dilution']), 0, '.', '');
-            
             }
-        
         }
-        
         return $result;
     }
      
@@ -306,7 +258,6 @@ class CalculatorElisaManager
     public function calcMLU($value) {
         
         $param = $this->getParam($value);
-        
         $Blank = $param['Abs'][1];
         $BMax = (((($param['Abs'][13] - $Blank) / $param['std_bmax']) + (($param['Abs'][25] - $Blank) / $param['std_bmax'])) / 2);
         
@@ -322,39 +273,23 @@ class CalculatorElisaManager
 
             // the calculation is made according to the condition
             if ($sample <= 0) { // check division by zero
-            
                 $result[$k] = "< Blank";
-            
             } elseif ($condition1 > $BMax) {
-            
-                //$result[$k] = ($param['dilution'] == "2" ? "> 16" : "> " . number_format($param['c_max'], 0, '.', ''));
                 $result[$k] = "> " . number_format((($param['c_max'] / 101) * $param['dilution']), 0, '.', '');
-            
             } elseif ($condition2 < $param['c_min']) {
-            
                 $result[$k] = ((($sample / $BMax) * (log(($param['c_min'] - $param['a1']) / (-$param['a2']))) * (-$param['c']) / $param['c_min']) / 101) * $param['dilution'];
                 $result[$k] = number_format($result[$k] , 2, '.', '');
-            
             } elseif ($condition3 > $param['c_max']) {
-            
-                //$result[$k] = ($param['dilution'] == "2" ? "> 16" : "> " . number_format($param['c_max'], 0, '.', ''));
                 $result[$k] = "> " . number_format((($param['c_max'] / 101) * $param['dilution']), 0, '.', '');
-            
             } else {
-                
                 $result[$k] = ((log(($sample / $BMax - $param['a1'])/(-$param['a2'])) * (-$param['c'])) / 101) * $param['dilution'];
                 $result[$k] = number_format($result[$k] , 2, '.', '');
-            
             }
         
             if ($result[$k] == "nan") {
-            
                 $result[$k] = "> " . number_format((($param['c_max'] / 101) * $param['dilution']), 0, '.', '');
-            
             }
-        
         }
-        
         return $result;
     }
     
@@ -378,39 +313,30 @@ class CalculatorElisaManager
             $condition1 = $sample / $BMax;
             
             if ($sample <= 0) { // check division by zero
-            
                 $result[$k] = "< Blank";
             
             } elseif ($sample > $BMax) {
-
                 $result[$k] = ($param['dilution'] == "2" ? "> 45" : "> 2200");
-
             } elseif ($condition1 < $param['c_min']) {
-                
                 $result[$k] = ($sample / $BMax) * (log(($param['c_min'] - $param['a1']) / (-$param['a2']))) * (-$param['c']) / $param['c_min'];
                 $result[$k] = ((2140.6 - (2085) / (1 + ($result[$k] * $result[$k]) / 5055.2)) / 101 ) * $param['dilution'];
                 $result[$k] = number_format($result[$k] , 2, '.', '');
-                
             } else {
-
                 $result[$k] = log(($sample / $BMax - $param['a1']) / (-$param['a2'])) * (-$param['c']);
                 $result[$k] = ((2140.6 - (2085) / (1 + ($result[$k] * $result[$k]) / 5055.2)) / 101) * $param['dilution'];
                 $result[$k] = number_format($result[$k] , 2, '.', '');
-                
             }
 
             if ($result[$k] == "nan") {
-            
                 $result[$k] = ($param['dilution'] == "2" ? "> 45" : "> 2200");
             }
         }
-        
         return $result;
     }
     
-    
     /**
-     * get results according to the selected units 
+     * get results according to the selected units
+     * default unit = AU/ml
      * @return array
      */
     public function getResult($value) {
@@ -420,26 +346,14 @@ class CalculatorElisaManager
         
         /** get the result per unit */
         if ($unit_short == "IP") {
-            
             $this->result = $this->calcIP($value);
-            
-        } elseif ($unit_short == "AU") {
-            
-            $this->result = $this->calcAU($value);
-            
-        } elseif ($unit_short == "mlU") {
-            
-            $this->result = $this->calcMLU($value);
-            
-        } elseif ($unit_short == "IU") {
-            
-            $this->result = $this->calcMLU($value);
-            
-        } else {
-            
+        } elseif ($unit_short == "VIEU") {
             $this->result = $this->calcVIEU($value);
+        } elseif ($unit_short == "mlU") {
+            $this->result = $this->calcMLU($value);
+        } else {
+            $this->result = $this->calcAU($value);
         }
-        
         return $this->result;
     }
     
@@ -469,9 +383,7 @@ class CalculatorElisaManager
             $vieu_max = $param['serum_vieu_max'];
             $iu_min = $param['serum_iu_min'];
             $iu_max = $param['serum_iu_max'];
-            
         } elseif ($param['dilution'] == "2") {
-            
             $ip_min = $param['csf_ip_min'];
             $ip_max = $param['csf_ip_max'];
             $au_min = $param['csf_au_min'];
@@ -482,9 +394,7 @@ class CalculatorElisaManager
             $vieu_max = $param['csf_vieu_max'];
             $iu_min = $param['csf_iu_min'];
             $iu_max = $param['csf_iu_max'];
-            
         } else {
-            
             $ip_min = $param['synovia_ip_min'];
             $ip_max = $param['synovia_ip_max'];
             $au_min = $param['synovia_au_min'];
@@ -501,23 +411,14 @@ class CalculatorElisaManager
         foreach ($result as $k =>$v) {
             
             if ($unit->unit_short == "IP") {
-
                 $this->interpretation[$k] = (!empty($ip_min) && !empty($ip_min) ? ($v < $ip_min ? "<span id='ipret-negative'>Negative</span>" : ($v > $ip_max ? "<span id='ipret-positive'>Positive</span>" : "<span id='ipret-greyzone'>Greyzone<span>")) : "");
-
             } elseif ($unit->unit_short == "AU") {
-                
                 $this->interpretation[$k] = (!empty($au_min) && !empty($au_min) ? ($v < $au_min ? "<span id='ipret-negative'>Negative</span>" : ($v > $au_max ? "<span id='ipret-positive'>Positive</span>" : "<span id='ipret-greyzone'>Greyzone</span>")) : "");
-                
             } elseif ($unit->unit_short == "mlU") {
-                
                 $this->interpretation[$k] = (!empty($mlu_min) && !empty($mlu_min) ? ($v < $mlu_min ? "<span id='ipret-negative'>Negative</span>" : ($v > $mlu_max ? "<span id='ipret-positive'>Positive</span>" : "<span id='ipret-greyzone'>Greyzone</span>")) : "");
-                
             } elseif ($unit->unit_short == "IU") {
-                
                 $this->interpretation[$k] = (!empty($iu_min) && !empty($iu_min) ? ($v < $iu_min ? "<span id='ipret-negative'>Negative</span>" : ($v > $iu_max ? "<span id='ipret-positive'>Positive</span>" : "<span id='ipret-greyzone'>Greyzone</span>")) : "");
-                
             } else {
-                
                 $this->interpretation[$k] = (!empty($vieu_min) && !empty($vieu_min) ? ($v < $vieu_min ? "<span id='ipret-negative'>Negative</span>" : ($v > $vieu_max ? "<span id='ipret-positive'>Positive</span>" : "<span id='ipret-greyzone'>Greyzone</span>")) : "");
             }
             
@@ -525,7 +426,6 @@ class CalculatorElisaManager
                 $this->interpretation[$k] = "<span id='ipret-negative'></span>";
             }
         }
-        
         return $this->interpretation;
     }
     

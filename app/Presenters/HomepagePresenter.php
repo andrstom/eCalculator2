@@ -139,8 +139,8 @@ class HomepagePresenter extends BasePresenter
         // load user info
         $user = $this->getUser();
         
-        // load units
-        $units = $this->dbHandler->getUnits()->fetchPairs('id', 'unit_name');
+        // load active units
+        $units = $this->dbHandler->getUnits()->where('active', 'ANO')->fetchPairs('id', 'unit_name');
 
         // set default reader
         $reader = array('manual' => 'MANUAL');
@@ -154,7 +154,7 @@ class HomepagePresenter extends BasePresenter
         // load data for non-logged/logged user
         if (!$user->isLoggedIn()) {
             
-            // load all assays
+            // load active assays
             $userassay = $this->dbHandler->getAssays()->where('active', 'ANO')->fetchPairs('id', 'assay_name');
             
             // select assay
