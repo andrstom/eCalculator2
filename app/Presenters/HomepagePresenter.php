@@ -169,11 +169,8 @@ class HomepagePresenter extends BasePresenter
 
             // add user readers into array "reader"
             if (!empty($user_readers)) {
-
                 foreach ($user_readers as $user_reader) {
-
                     $reader[$user_reader->reader_id] = $user_reader->reader->reader_name;
-
                 }
             }
 
@@ -181,23 +178,16 @@ class HomepagePresenter extends BasePresenter
             $assays = $this->dbHandler->getUsersAssays()->where('users_id', $user->id)->fetchAll();
             
             if (!empty($assays)) {
-                
                 foreach ($assays as $assay) {
-                
                     $userassay[$assay->assays_id] = $assay->assays->assay_name;
-                    
                 }
-                
                 $form->addSelect('assay', '* Vyberte metodu  / Select assay:', $userassay)
                     ->setRequired('Vyberte metodu  / Select assay')
                     ->setPrompt('Vybrat  / Select ...');
-                    
             } else {
-            
                 $form->addSelect('assay', '* Vyberte metodu  / Select assay:')
                     ->setRequired('Vyberte metodu  / Select assay')
                     ->setPrompt('Uživatel nemá dostupnou žádnou metodu !!!');
-                
             }
         }
         
@@ -292,7 +282,7 @@ class HomepagePresenter extends BasePresenter
         
         $form->addSelect('unit', '* Jednotka / Unit:', $units)
                 ->setDefaultValue(1)
-                ->addConditionOn($form['assay'], Form::PATTERN, '[1]|[2]|[3]|[4]|[5]|[7]|[9][10]') // All assays without TBEVG, VZVG
+                ->addConditionOn($form['assay'], Form::PATTERN, '[1]|[2]|[3]|[4]|[5]|[7]|[9]') // All assays without TBEVG, VZVG, SARS (AGM)
                     ->setRequired()
                     ->addRule(Form::PATTERN, 'Jednotku nezle použít pro zvolenou metodu. / Selected unit can not be used for selected assay.', '[1]|[2]') // IP, AU
                     ->endCondition()
@@ -303,6 +293,18 @@ class HomepagePresenter extends BasePresenter
                 ->addConditionOn($form['assay'], Form::EQUAL, '8') // VZVG
                     ->setRequired()
                     ->addRule(Form::PATTERN, 'Jednotku nezle použít pro zvolenou metodu. / Selected unit can not be used for selected assay...', '[1]|[4]') // Povolené jednotky IP, mlU/ml
+                    ->endCondition()
+                ->addConditionOn($form['assay'], Form::EQUAL, '10') // SARSA
+                    ->setRequired()
+                    ->addRule(Form::PATTERN, 'Jednotku nezle použít pro zvolenou metodu. / Selected unit can not be used for selected assay....', '[1]|[5]') // IP, IU
+                    ->endCondition()
+                ->addConditionOn($form['assay'], Form::EQUAL, '11') // SARSM
+                    ->setRequired()
+                    ->addRule(Form::PATTERN, 'Jednotku nezle použít pro zvolenou metodu. / Selected unit can not be used for selected assay....', '[1]|[5]') // IP, IU
+                    ->endCondition()
+                ->addConditionOn($form['assay'], Form::EQUAL, '12') // SARSG
+                    ->setRequired()
+                    ->addRule(Form::PATTERN, 'Jednotku nezle použít pro zvolenou metodu. / Selected unit can not be used for selected assay....', '[1]|[5]') // IP, IU
                     ->endCondition();
 
         $form->addUpload('file','* Vybrat soubor / Select file:')
